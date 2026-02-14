@@ -1,4 +1,4 @@
-# 🧠 Consensus Engine — System Design Document
+#  Consensus Engine — System Design Document
 
 ## 1. Design Goals
 
