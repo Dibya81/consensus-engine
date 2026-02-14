@@ -179,4 +179,3 @@ Consensus Engine is a step toward trustworthy artificial intelligence.
 
 MIT License
 
-.sfd
