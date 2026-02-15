@@ -14,7 +14,7 @@ The architecture consists of four primary stages:
 
 ### System Architecture Diagram
 
-![System Architecture](diagrams/architecture.mmd)
+![System Architecture](diagrams/architecture.png)
 
 The architecture diagram shows the complete AWS-based system structure:
 - Frontend Layer: Next.js UI hosted on AWS Amplify with CI/CD and automatic scaling
@@ -28,7 +28,7 @@ The architecture diagram shows the complete AWS-based system structure:
 
 ### Process Flow Diagram
 
-![Process Flow](diagrams/process-flow.mmd)
+![Process Flow](diagrams/processFlow.png)
 
 The sequence diagram illustrates the complete request flow through AWS services:
 1. User submits query through Next.js frontend hosted on AWS Amplify
@@ -44,7 +44,7 @@ The sequence diagram illustrates the complete request flow through AWS services:
 
 ### Use Case Diagram
 
-![Use Case Diagram](diagrams/use-case.mmd)
+![Use Case Diagram](diagrams/usecase.png)
 
 The use case diagram shows three actor types and their interactions:
 - Student Users: Submit queries, view verified responses, access history, stream real-time results
