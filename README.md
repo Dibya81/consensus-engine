@@ -1,24 +1,24 @@
-# 🧠 Consensus Engine
+#  Consensus Engine
 ## Verified AI Answers Through Multi-Agent Consensus
 
 > Turning unreliable AI outputs into trustworthy knowledge.
 
 ---
 
-## 🌍 Why This Matters
+## Why This Matters
 
 AI tools like ChatGPT, Gemini, and Copilot are widely used for learning and development — yet they frequently produce:
 
-- ❌ Hallucinated or incorrect code
-- ❌ Outdated or insecure solutions
-- ❌ Confidently wrong explanations
-- ❌ No reliability guarantees
+- Hallucinated or incorrect code
+- Outdated or insecure solutions
+- Confidently wrong explanations
+- No reliability guarantees
 
 This creates a **trust crisis in AI-generated knowledge**, especially for students, developers, and beginners who cannot verify answers themselves.
 
 ---
 
-## 💡 Our Solution
+## Our Solution
 
 **Consensus Engine** is an AI platform that validates answers by consulting multiple independent AI models simultaneously and synthesizing a verified response.
 
@@ -32,7 +32,7 @@ We ask:
 
 ---
 
-## ⚙️ How It Works
+## How It Works
 User Query
 ↓
 Orchestrator
@@ -49,9 +49,9 @@ Verified Answer + Confidence Score
 
 ---
 
-## 🧩 Core Innovation
+## Core Innovation
 
-### 🔹 Multi-Agent Truth Pipeline
+### Multi-Agent Truth Pipeline
 
 Unlike traditional AI systems that rely on a single model, our platform:
 
@@ -64,35 +64,35 @@ Unlike traditional AI systems that rely on a single model, our platform:
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-- ✅ Multi-model consensus validation
-- 🧠 Hallucination detection
-- 📊 Confidence scoring
-- 📚 Educational disagreement explanations
-- ⚡ Low-latency response via intelligent caching
-- 🔐 Safety and risk checks
-- 📈 Scalable architecture
+- Multi-model consensus validation
+- Hallucination detection
+- Confidence scoring
+- Educational disagreement explanations
+- Low-latency response via intelligent caching
+- Safety and risk checks
+- Scalable architecture
 
 ---
 
-## 🧪 Real-World Use Cases
+## Real-World Use Cases
 
-### 🎓 Education
+### Education
 Students receive verified explanations instead of misleading answers.
 
-### 💻 Software Development
+### Software Development
 Developers get trustworthy code suggestions with reduced debugging time.
 
-### 🏢 Enterprise Knowledge Systems
+###Enterprise Knowledge Systems
 Organizations can deploy safe AI assistants with reliability guarantees.
 
-### 🧑‍💻 Beginners Learning Programming
+### Beginners Learning Programming
 Prevents copy-paste bugs from incorrect AI outputs.
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 Traditional AI:
 User → Single Model → Output (Unverified)
@@ -103,7 +103,7 @@ User → Multi-Agent System → Consensus → Verified Output
 
 ---
 
-## 🧰 Technology Stack
+## Technology Stack
 
 ### Frontend
 - Next.js
@@ -130,7 +130,7 @@ User → Multi-Agent System → Consensus → Verified Output
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 consensus-engine/
 │
@@ -147,7 +147,7 @@ consensus-engine/
 
 ---
 
-## 🚀 Why This Project Stands Out
+## Why This Project Stands Out
 
 ✔ Addresses a critical and growing trust issue in AI  
 ✔ Model-agnostic (works with future AI systems)  
@@ -157,7 +157,7 @@ consensus-engine/
 
 ---
 
-## 🔮 Future Vision
+## Future Vision
 
 - Real-time web verification layer
 - Plugin system for custom agents
@@ -167,7 +167,7 @@ consensus-engine/
 
 ---
 
-## 🤝 Team Vision
+## Team Vision
 
 We believe AI should not only be powerful — it should be **reliable, transparent, and safe to trust**.
 
@@ -175,7 +175,7 @@ Consensus Engine is a step toward trustworthy artificial intelligence.
 
 ---
 
-## 📄 License
+## License
 
 MIT License
 

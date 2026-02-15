@@ -1,465 +1,150 @@
-# Design Document: Consensus
+# 🧠 Consensus Engine — System Design Document
 
-## Overview
+## 1. Design Goals
 
-Consensus implements a pipelined architecture inspired by Aptos Block-STM to process AI queries through parallel execution and consensus validation. The system broadcasts queries to multiple LLM providers simultaneously, executes them optimistically in parallel, validates responses through a consensus judge, and commits the synthesized result. This approach minimizes latency while maximizing verification confidence through multi-model agreement.
+The primary goal of Consensus Engine is to provide **reliable, verified AI-generated answers** by aggregating outputs from multiple independent models and synthesizing a consensus.
 
-The architecture consists of four primary stages:
-1. **Dissemination**: Broadcast queries to multiple LLM providers
-2. **Optimistic Execution**: Generate responses in parallel without blocking
-3. **Validation**: Compare and evaluate responses for consensus
-4. **Commit**: Synthesize and deliver the final verified result
+Key objectives:
 
-## Architecture
+- Increase trust in AI-generated content
+- Reduce hallucinations and incorrect responses
+- Provide confidence scoring and transparency
+- Maintain low latency through parallel processing
+- Ensure modularity for future model integrations
+- Support scalability and production deployment
 
-### System Architecture Diagram
+---
 
-![System Architecture](diagrams/architecture.mmd)
+## 2. Core Problem
 
-The architecture diagram shows the complete AWS-based system structure:
-- Frontend Layer: Next.js UI hosted on AWS Amplify with CI/CD and automatic scaling
-- API Layer: Amazon API Gateway for traffic management and AWS Lambda for serverless compute
-- Cache Layer: Amazon ElastiCache (Redis) with <10ms response time for semantic search
-- Orchestration Layer: Multi-model broadcaster with async coordination
-- AI Layer: Amazon Bedrock providing unified access to Claude 3.5 Sonnet (Judge), Llama 3, and Mistral Large (Workers)
-- Analysis Layer: Consensus judge and conflict resolver
-- Synthesis Layer: Response synthesizer and stream manager
-- Persistence Layer: Aurora Serverless (PostgreSQL) with auto-scaling and CloudWatch logging
+Single-model AI systems can produce:
 
-### Process Flow Diagram
+- Hallucinated facts
+- Outdated information
+- Overconfident incorrect answers
+- Lack of reliability indicators
 
-![Process Flow](diagrams/process-flow.mmd)
+Users often cannot independently verify correctness.
 
-The sequence diagram illustrates the complete request flow through AWS services:
-1. User submits query through Next.js frontend hosted on AWS Amplify
-2. Amazon API Gateway routes request to AWS Lambda (FastAPI)
-3. Lambda checks ElastiCache (Redis) for semantic cache hit (<10ms response)
-4. On cache miss, broadcaster sends query to multiple models via Amazon Bedrock in parallel
-5. Claude 3.5 Sonnet (Judge), Llama 3, and Mistral Large process queries concurrently
-6. Responses stream back in real-time through Lambda to the frontend
-7. Consensus judge compares responses and calculates similarity score
-8. For low consensus, conflict resolver extracts different perspectives
-9. Final result is cached in ElastiCache and logged to Aurora Serverless
-10. Frontend displays verification status and consensus score
+Consensus Engine addresses this by introducing a validation layer across multiple models.
 
-### Use Case Diagram
+---
 
-![Use Case Diagram](diagrams/use-case.mmd)
+## 3. High-Level Architecture
 
-The use case diagram shows three actor types and their interactions:
-- Student Users: Submit queries, view verified responses, access history, stream real-time results
-- Developer Users: All student capabilities plus comparing model perspectives
-- System Admins: Manage cache, monitor performance, review audit logs, configure rate limits
+Client → API Gateway → Orchestrator → Multiple AI Agents → Arbiter → Response
 
-External systems include Amazon Bedrock providing unified access to Claude 3.5 Sonnet (Judge Agent), Meta Llama 3, and Mistral Large (Worker Models) for multi-model verification.
 
-### Pipelined Architecture Stages
 
-#### Stage 1: Dissemination (Broadcast)
-The API Gateway receives user queries and checks the Semantic Cache. On cache miss, the Multi-Model Broadcaster disseminates the query to all configured LLM providers simultaneously. This stage uses asynchronous I/O to initiate multiple requests without blocking.
+### Components:
 
-#### Stage 2: Optimistic Execution (Parallel Generation)
-Each LLM agent executes independently and optimistically, generating responses without waiting for other agents. Responses stream back as they complete, allowing early display to users. This stage leverages Python's asyncio for concurrent execution.
+- Client Interface (Web UI)
+- FastAPI Backend
+- Agent Modules
+- Consensus Arbiter
+- Optional Caching Layer
 
-#### Stage 3: Validation (Judge Comparison)
-The Consensus Judge collects all responses and performs semantic comparison using embedding similarity and structural analysis. It calculates a Consensus Score and identifies areas of agreement or conflict. The Conflict Resolver processes disagreements and prepares nuanced views.
+---
 
-#### Stage 4: Commit (Synthesis)
-The Response Synthesizer commits the final result by combining consensus information, verification status, and conflict details. Results are persisted to PostgreSQL for history tracking and cached in Redis for future queries.
+## 4. System Components
 
-## Components and Interfaces
+### 4.1 API Layer
 
-### Frontend Components (Next.js)
+Handles incoming requests and response formatting.
 
-#### QueryInterface Component
-```typescript
-interface QueryInterfaceProps {
-  onSubmit: (query: string) => void;
-  isLoading: boolean;
-}
+Responsibilities:
 
-// Handles user input and query submission
-// Provides real-time validation and character limits
-```
+- Input validation
+- Routing
+- Error handling
+- Versioning
+- Security checks
 
-#### ResponseDisplay Component
-```typescript
-interface ResponseDisplayProps {
-  responses: ModelResponse[];
-  consensusScore: number;
-  verificationStatus: VerificationStatus;
-  conflicts?: ConflictView[];
-}
+---
 
-// Displays streaming responses from multiple models
-// Shows verification badges and consensus indicators
-// Renders conflict resolution UI when needed
-```
+### 4.2 Orchestrator (Consensus Service)
 
-#### StreamingHandler
-```typescript
-interface StreamingHandler {
-  connect(queryId: string): EventSource;
-  onMessage(callback: (data: StreamData) => void): void;
-  onError(callback: (error: Error) => void): void;
-  close(): void;
-}
+Central coordination component.
 
-// Manages Server-Sent Events connection
-// Handles real-time response streaming
-```
+Responsibilities:
 
-### Backend Components (FastAPI)
+- Dispatch queries to multiple agents
+- Execute agents in parallel
+- Aggregate responses
+- Pass results to Arbiter
+- Handle timeouts and failures
 
-#### API Gateway
-```python
-class APIGateway:
-    def __init__(self, cache: SemanticCache, broadcaster: MultiModelBroadcaster):
-        self.cache = cache
-        self.broadcaster = broadcaster
-    
-    async def handle_query(self, query: QueryRequest) -> QueryResponse:
-        """
-        Entry point for all queries
-        Checks cache, initiates broadcast on miss
-        Returns streaming response
-        """
-        pass
-    
-    async def get_history(self, user_id: str, limit: int) -> List[HistoryEntry]:
-        """
-        Retrieves user query history from database
-        """
-        pass
-```
+---
 
-#### MultiModelBroadcaster
-```python
-class MultiModelBroadcaster:
-    def __init__(self, agents: List[LLMAgent]):
-        self.agents = agents
-    
-    async def broadcast(self, query: str) -> AsyncIterator[ModelResponse]:
-        """
-        Sends query to all LLM agents concurrently
-        Yields responses as they arrive
-        Handles timeouts and failures gracefully
-        """
-        pass
-```
+### 4.3 AI Agents
 
-#### LLMAgent (Abstract Base)
-```python
-class LLMAgent(ABC):
-    @abstractmethod
-    async def generate(self, query: str) -> ModelResponse:
-        """
-        Generates response from specific LLM provider via Amazon Bedrock
-        Implements retry logic and error handling
-        """
-        pass
+Each agent represents an independent model provider.
 
-class ClaudeJudgeAgent(LLMAgent):
-    """Implementation for Anthropic Claude 3.5 Sonnet via Bedrock - Judge Agent"""
-    pass
+Examples:
 
-class LlamaAgent(LLMAgent):
-    """Implementation for Meta Llama 3 via Bedrock - Worker Model"""
-    pass
+- GPT Agent
+- Gemini Agent
 
-class MistralAgent(LLMAgent):
-    """Implementation for Mistral Large via Bedrock - Worker Model"""
-    pass
-```
+Design Characteristics:
 
-#### ConsensusJudge
-```python
-class ConsensusJudge:
-    def __init__(self, embedding_model: EmbeddingModel):
-        self.embedding_model = embedding_model
-    
-    async def evaluate(self, responses: List[ModelResponse]) -> ConsensusResult:
-        """
-        Compares responses using semantic similarity
-        Calculates consensus score (0.0 to 1.0)
-        Identifies agreement and conflict areas
-        """
-        pass
-    
-    def calculate_similarity(self, resp1: str, resp2: str) -> float:
-        """
-        Computes cosine similarity between response embeddings
-        """
-        pass
-```
+- Modular and interchangeable
+- Isolated from orchestration logic
+- Support asynchronous execution
+- Can be replaced with real APIs without system redesign
 
-#### ConflictResolver
-```python
-class ConflictResolver:
-    def resolve(self, consensus_result: ConsensusResult) -> ConflictView:
-        """
-        Processes low-consensus results
-        Extracts unique perspectives from each model
-        Structures conflicts for user presentation
-        """
-        pass
-    
-    def extract_differences(self, responses: List[ModelResponse]) -> List[Difference]:
-        """
-        Identifies specific points of disagreement
-        """
-        pass
-```
+---
 
-#### SemanticCache
-```python
-class SemanticCache:
-    def __init__(self, redis_client: Redis, embedding_model: EmbeddingModel):
-        self.redis = redis_client
-        self.embedding_model = embedding_model
-    
-    async def get(self, query: str, threshold: float = 0.9) -> Optional[CachedResult]:
-        """
-        Searches for semantically similar cached queries
-        Returns cached result if similarity exceeds threshold
-        """
-        pass
-    
-    async def set(self, query: str, result: QueryResponse, ttl: int = 86400) -> None:
-        """
-        Stores query and result with semantic embedding
-        Sets expiration time (default 24 hours)
-        """
-        pass
-```
+### 4.4 Arbiter (Consensus Engine Core)
 
-## Data Models
+Evaluates responses from agents and produces the final output.
 
-### Core Data Structures
+Functions:
 
-#### QueryRequest
-```python
-class QueryRequest(BaseModel):
-    query: str
-    user_id: Optional[str] = None
-    context: Optional[Dict[str, Any]] = None
-    max_models: int = 3
-```
+- Compare answers for agreement
+- Detect contradictions
+- Compute confidence score
+- Synthesize final answer
+- Provide explanation of consensus
 
-#### ModelResponse
-```python
-class ModelResponse(BaseModel):
-    model_name: str
-    provider: str
-    content: str
-    timestamp: datetime
-    latency_ms: int
-    metadata: Dict[str, Any]
-```
+Confidence factors include:
 
-#### ConsensusResult
-```python
-class ConsensusResult(BaseModel):
-    consensus_score: float
-    verification_status: VerificationStatus
-    agreements: List[str]
-    conflicts: List[Conflict]
-    responses: List[ModelResponse]
-```
+- Semantic similarity
+- Completeness of responses
+- Presence of conflicting information
+- Agreement ratio between agents
 
-#### ConflictView
-```python
-class Conflict(BaseModel):
-    area: str
-    perspectives: List[Perspective]
+---
 
-class Perspective(BaseModel):
-    model_name: str
-    viewpoint: str
-    reasoning: Optional[str]
+### 4.5 Response Generator
 
-class ConflictView(BaseModel):
-    has_conflicts: bool
-    conflicts: List[Conflict]
-```
+Produces structured output:
 
-#### VerificationStatus
-```python
-class VerificationStatus(str, Enum):
-    VERIFIED = "verified"  # consensus_score >= 0.7
-    PARTIAL = "partial"    # 0.4 <= consensus_score < 0.7
-    CONFLICTED = "conflicted"  # consensus_score < 0.4
-    SINGLE_SOURCE = "single_source"  # only one model responded
-```
-
-### Database Schema
-
-#### Users Table
-```sql
-CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email VARCHAR(255) UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_active TIMESTAMP
-);
-
-CREATE INDEX idx_users_email ON users(email);
-```
-
-#### Queries Table
-```sql
-CREATE TABLE queries (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID REFERENCES users(id),
-    query_hash VARCHAR(64) NOT NULL,  -- SHA-256 hash for privacy
-    query_embedding VECTOR(768),      -- For semantic search
-    consensus_score FLOAT,
-    verification_status VARCHAR(20),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_queries_user_id ON queries(user_id);
-CREATE INDEX idx_queries_created_at ON queries(created_at DESC);
-CREATE INDEX idx_queries_embedding ON queries USING ivfflat (query_embedding vector_cosine_ops);
-```
-
-#### VerificationLogs Table
-```sql
-CREATE TABLE verification_logs (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    query_id UUID REFERENCES queries(id),
-    model_name VARCHAR(50),
-    provider VARCHAR(50),
-    response_hash VARCHAR(64),  -- SHA-256 hash of response
-    latency_ms INTEGER,
-    success BOOLEAN,
-    error_message TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_verification_logs_query_id ON verification_logs(query_id);
-CREATE INDEX idx_verification_logs_model ON verification_logs(model_name);
-```
-
-## Tech Stack
-
-### Frontend
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **State Management**: React Context + Hooks
-- **HTTP Client**: Fetch API with Server-Sent Events
-- **Hosting**: AWS Amplify (CI/CD, automatic scaling, CDN)
-
-### Backend
-- **Framework**: FastAPI 0.104+
-- **Language**: Python 3.11+
-- **Async Runtime**: asyncio
-- **API Documentation**: OpenAPI (Swagger) auto-generated
-- **Compute**: AWS Lambda (Serverless, scales to zero)
-- **API Gateway**: Amazon API Gateway (traffic management, rate limiting, routing)
-
-### Data Layer
-- **Cache**: Amazon ElastiCache (Redis) - Semantic cache with <10ms response time
-- **Database**: Amazon Aurora Serverless (PostgreSQL) - Auto-scaling capacity
-- **ORM**: SQLAlchemy 2.0 (async)
-
-### AI/ML Services (Consensus Engine)
-- **Unified API**: Amazon Bedrock - Single interface for multiple foundation models
-- **Judge Agent**: Anthropic Claude 3.5 Sonnet (via Bedrock) - High reasoning capability for arbitration
-- **Worker Models**: 
-  - Meta Llama 3 (via Bedrock) - Diverse perspective #1
-  - Mistral Large (via Bedrock) - Diverse perspective #2
-- **Embeddings**: Amazon Bedrock Embeddings or sentence-transformers for semantic similarity
-
-### Infrastructure
-- **Infrastructure as Code**: AWS CloudFormation - Reproducible and scalable architecture
-- **Monitoring**: AWS CloudWatch (logs, metrics, alarms)
-- **Security**: AWS IAM, AWS Secrets Manager
-
-## API Endpoints
-
-### POST /api/v1/ask
-Submit a query for multi-model verification.
-
-**Request:**
-```json
 {
-  "query": "How do I implement a binary search tree in Python?",
-  "user_id": "optional-user-id",
-  "context": {},
-  "max_models": 3
+answer: "...",
+confidence_score: 0.92,
+confidence_level: "High",
+agreement_summary: "...",
+sources: [...]
 }
-```
-
-**Response (Streaming):**
-```
-event: model_response
-data: {"model": "gemini", "content": "...", "timestamp": "..."}
-
-event: model_response
-data: {"model": "gpt4", "content": "...", "timestamp": "..."}
-
-event: consensus
-data: {"score": 0.85, "status": "verified", "conflicts": []}
-
-event: complete
-data: {"query_id": "uuid", "total_latency_ms": 2500}
-```
-
-**Response (Non-Streaming):**
-```json
-{
-  "query_id": "uuid",
-  "consensus_score": 0.85,
-  "verification_status": "verified",
-  "responses": [
-    {
-      "model_name": "gemini-pro",
-      "provider": "google",
-      "content": "...",
-      "latency_ms": 1200
-    }
-  ],
-  "conflicts": [],
-  "cached": false
-}
-```
-
-### GET /api/v1/history
-Retrieve user query history.
-
-**Query Parameters:**
-- `user_id` (required): User identifier
-- `limit` (optional, default=20): Number of results
-- `offset` (optional, default=0): Pagination offset
-
-**Response:**
-```json
-{
-  "total": 45,
-  "limit": 20,
-  "offset": 0,
-  "results": [
-    {
-      "query_id": "uuid",
-      "query_hash": "sha256...",
-      "consensus_score": 0.85,
-      "verification_status": "verified",
-      "created_at": "2024-01-15T10:30:00Z"
-    }
-  ]
-}
-```
 
 
-## Correctness Properties
+---
 
-*A property is a characteristic or behavior that should hold true across all valid executions of a system—essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
+### 4.6 Caching Layer (Future Enhancement)
 
-### Property Reflection
+A caching system (e.g., Redis) can store previously verified answers to:
 
-After analyzing all acceptance criteria, I identified several areas where properties can be consolidated:
+- Reduce response latency
+- Minimize API costs
+- Improve scalability
+
+---
+
+## 5. Concurrency Design
+
+Parallel execution is implemented using asynchronous processing.
+
+Benefits:
 
 - Properties 1.1 and 1.4 both relate to the broadcaster's collection behavior and can be combined into a single property about complete concurrent broadcasting
 - Properties 2.2 and 2.3 test opposite sides of the same scoring logic and can be unified into one property about score-consensus correlation
