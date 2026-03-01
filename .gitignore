@@ -33,3 +33,9 @@ venv/
 
 # docker
 *.log
+
+# secrets
+firebase_credentials.json
+*.json
+.env
+.env.*
