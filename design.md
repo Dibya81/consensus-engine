@@ -1,5 +1,5 @@
 # Design Document: Consensus
-jh
+
 ## Overview
 
 Consensus implements a pipelined architecture inspired by Aptos Block-STM to process AI queries through parallel execution and consensus validation. The system broadcasts queries to multiple LLM providers simultaneously, executes them optimistically in parallel, validates responses through a consensus judge, and commits the synthesized result. This approach minimizes latency while maximizing verification confidence through multi-model agreement.

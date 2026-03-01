@@ -1,0 +1,67 @@
+# Consensus Engine: Requirements & Dependencies
+
+This document provides a clean, consolidated list of the primary dependencies required to run the Consensus Engine project. 
+
+## 1. Backend API (Python 3.10+)
+The backend is a fast, asynchronous API built with **FastAPI** and uses **SQLAlchemy** for database ORM.
+
+**Core Framework & Server:**
+- `fastapi` & `uvicorn` (Web Framework & ASGI Server)
+- `pydantic` & `pydantic-settings` (Data Validation & Config)
+
+**Database & ORM:**
+- `sqlalchemy` (ORM)
+- `alembic` (Migrations)
+- `asyncpg` & `psycopg2-binary` (PostgreSQL Drivers)
+- `aiosqlite` (Async SQLite Driver)
+
+**Auth & Security:**
+- `python-jose[cryptography]` (JWT Tokens)
+- `passlib[bcrypt]` (Password Hashing)
+
+**AI & External Services:**
+- `litellm` (LLM Routing/Standardization)
+- `firebase-admin` (Firebase Integration)
+- `redis` (Caching)
+- `boto3` (AWS SDK)
+
+---
+
+## 2. Frontend Web App (Node.js & Next.js)
+The frontend is a modern React application built on **Next.js 14**, styled with **Tailwind CSS**, and features heavy 3D visualizations using **Three.js**.
+
+**Core Framework:**
+- `next` (v14.0.1)
+- `react` & `react-dom` (v18)
+
+**UI & Styling:**
+- `tailwindcss` (v3.3.5)
+- `lucide-react` (Icons)
+- `framer-motion` (Fluid Animations)
+- `clsx` & `tailwind-merge` (Class Management)
+
+**3D Rendering (WebGL):**
+- `three`
+- `@react-three/fiber`
+- `@react-three/drei`
+
+**Editor & Services:**
+- `@monaco-editor/react` (Code Editor)
+- `firebase` (Client SDK)
+
+---
+
+## Running the Application
+**Backend:**
+\`\`\`bash
+cd apps/api
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+\`\`\`
+
+**Frontend:**
+\`\`\`bash
+cd apps/web
+npm install
+npm run dev
+\`\`\`
