@@ -738,9 +738,9 @@ const EnginePage = () => {
                     </div>
                   )}
                   {isDeepDiveLoading && (
-                    <div className={styles.loadingRow}>
+                    <div className={styles.loadingRow} style={{ borderTop: '1px solid var(--engine-border)', margin: '1rem 0' }}>
                       <Loader2 className={styles.spinner} size={20} color="#8b5cf6" />
-                      <span style={{ color: '#8b5cf6' }}>Expert Judge is calculating deep dive...</span>
+                      <span style={{ color: '#8b5cf6' }}>Expert Judge is calculating deep dive analysis...</span>
                     </div>
                   )}
                 </div>
@@ -924,8 +924,8 @@ const EnginePage = () => {
           </filter>
         </defs>
       </svg>
-      {/* MOBILE BOTTOM NAV */}
-      <div className={styles.mobileBottomNav}>
+      {/* MOBILE BOTTOM NAV - Only visible on small screens */}
+      <div className={`${styles.mobileBottomNav} mobile-only`}>
         <button 
           className={`${styles.mobileNavItem} ${activeTab === 'chat' ? styles.mobileNavItemActive : ''}`}
           onClick={() => setActiveTab('chat')}
@@ -938,7 +938,7 @@ const EnginePage = () => {
           onClick={() => setActiveTab('progress')}
         >
           <TrendingUp size={20} />
-          <span>Progress</span>
+          <span>Insights</span>
         </button>
         <button 
           className={`${styles.mobileNavItem} ${activeTab === 'notes' ? styles.mobileNavItemActive : ''}`}
@@ -955,6 +955,14 @@ const EnginePage = () => {
           <span>History</span>
         </button>
       </div>
+
+      <style>{`
+        @media (min-width: 769px) {
+          .mobile-only {
+            display: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

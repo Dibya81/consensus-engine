@@ -597,6 +597,16 @@ def lambda_handler(event, context):
                 "body": json.dumps({"cached": False, "data": final_result})
             }
 
+        elif action == "ANALYZE_DATA":
+            payload = body.get("payload", "")
+            data_type = body.get("data_type", "analyze")
+            final_result = asyncio.run(process_notes_analysis(payload, data_type))
+            return {
+                "statusCode": 200,
+                "headers": headers,
+                "body": json.dumps({"data": final_result})
+            }
+
         elif action == "GET_USER_DATA":
             data_type = body.get("data_type", "notes")
             user_key = f"USER_DATA_{username}_{data_type}"

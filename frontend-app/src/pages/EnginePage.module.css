@@ -627,7 +627,14 @@
   to { transform: rotate(360deg); }
 }
 
+.mobileBottomNav {
+  display: none;
+}
+
 /* RESPONSIVE */
+.mobileOnly {
+  display: none !important;
+}
 @media (max-width: 768px) {
   .inputContainer {
     padding: 1rem;
