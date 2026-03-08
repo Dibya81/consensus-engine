@@ -2,6 +2,8 @@
 
 A **production-grade, multi-agent AI consensus system** built on AWS. It routes user queries to specialist worker LLMs, scores their answers across 7 quantitative metrics, and invokes a powerful Judge model only when needed — combining the speed of small models with the accuracy of frontier AI.
 
+![Consensus Frontend Preview](images/frontend_preview.png)
+
 ---
 
 ## Architecture Overview
