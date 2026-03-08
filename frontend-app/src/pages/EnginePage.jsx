@@ -924,6 +924,37 @@ const EnginePage = () => {
           </filter>
         </defs>
       </svg>
+      {/* MOBILE BOTTOM NAV */}
+      <div className={styles.mobileBottomNav}>
+        <button 
+          className={`${styles.mobileNavItem} ${activeTab === 'chat' ? styles.mobileNavItemActive : ''}`}
+          onClick={() => setActiveTab('chat')}
+        >
+          <MessageSquare size={20} />
+          <span>Chat</span>
+        </button>
+        <button 
+          className={`${styles.mobileNavItem} ${activeTab === 'progress' ? styles.mobileNavItemActive : ''}`}
+          onClick={() => setActiveTab('progress')}
+        >
+          <TrendingUp size={20} />
+          <span>Progress</span>
+        </button>
+        <button 
+          className={`${styles.mobileNavItem} ${activeTab === 'notes' ? styles.mobileNavItemActive : ''}`}
+          onClick={() => setActiveTab('notes')}
+        >
+          <StickyNote size={20} />
+          <span>Notes</span>
+        </button>
+        <button 
+          className={styles.mobileNavItem}
+          onClick={() => setActivePopup('Chat History')}
+        >
+          <History size={20} />
+          <span>History</span>
+        </button>
+      </div>
     </div>
   );
 };

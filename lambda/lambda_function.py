@@ -171,7 +171,7 @@ class MinistralAgent(LLMAgent):
 
 class ClaudeSonnetAgent(LLMAgent):
     def __init__(self):
-        super().__init__("us.amazon.nova-pro-v1:0", "Amazon", "Amazon Nova Pro")
+        super().__init__("us.anthropic.claude-3-5-sonnet-20240620-v1:0", "Anthropic", "Claude 3.5 Sonnet")
 
 
 # --- ORCHESTRATION & SCORING ---
@@ -373,22 +373,35 @@ async def process_consensus_query(query: str, attachments: list = None):
         }
 
 async def process_deep_dive(query: str, llama_content: str, ministral_content: str):
-    judge = ClaudeSonnetAgent()
-    prompt = (
-        f"The user is unsatisfied with the current consensus comparison and needs a deep dive.\n\n"
-        f"Original Question: {query}\n\n"
-        f"Llama Response: {llama_content}\n\n"
-        f"Ministral Response: {ministral_content}\n\n"
-        f"Please provide a comprehensive, expert breakdown of both answers. "
-        f"Identify exactly what is correct or incorrect in each, and give a definitive 'Judge's Recommendation' "
-        f"on which parts the user should trust most. Use clear headings and evidence."
-    )
-    result = await judge.generate(prompt)
-    return {
-        "status": "DEEP_DIVE_RESULT",
-        "content": result['content'],
-        "model_name": result['model_name']
-    }
+    try:
+        judge = ClaudeSonnetAgent()
+        prompt = (
+            f"You are the Consensus Expert Judge. The user needs a technical deep dive comparison.\n\n"
+            f"Original Question: {query}\n\n"
+            f"Llama 4 Response: {llama_content}\n\n"
+            f"Ministral Response: {ministral_content}\n\n"
+            f"Break down both answers. Identify exactly what is correct or incorrect. "
+            f"Provide a definitive 'Judge's Recommendation' on what to trust. "
+            f"Use professional Markdown with bold headings."
+        )
+        result = await judge.generate(prompt)
+        
+        # Ensure we always return a valid object even if content is weird
+        content = result.get('content', "The Expert Judge was unable to process this specific comparison.")
+        if not content or len(content) < 10:
+             content = "The analysis produced an empty result. Please try again with a more detailed query."
+             
+        return {
+            "status": "DEEP_DIVE_RESULT",
+            "content": content,
+            "model_name": result.get('model_name', "Claude 3.5 Sonnet")
+        }
+    except Exception as e:
+        return {
+            "status": "DEEP_DIVE_RESULT",
+            "content": f"Deep Dive Error: {str(e)}",
+            "model_name": "System Error"
+        }
 
 async def simulate_code_execution(code: str, language: str):
     judge = ClaudeSonnetAgent()
