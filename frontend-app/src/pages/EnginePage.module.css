@@ -727,11 +727,26 @@
     font-size: 1rem;
   }
   .bottomProfileWrapper {
-    bottom: 5.5rem; /* Above mobile nav */
-    left: 1rem;
+    display: none;
   }
   .accountMenu {
-    bottom: calc(100% + 10px);
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) !important;
+  }
+  
+  .accountAvatarNav {
+    width: 22px;
+    height: 22px;
+    background: linear-gradient(135deg, var(--engine-accent), #ed8936);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.7rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   }
   
   .desktopOnly {

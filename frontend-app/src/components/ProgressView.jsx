@@ -256,8 +256,8 @@ const ProgressView = ({ username }) => {
             </div>
           </div>
           
-          <div style={{ flex: 1, width: '100%' }}>
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="chart-container" style={{ width: '100%', minHeight: '350px', position: 'relative', marginTop: '1rem', backgroundColor: 'rgba(0,0,0,0.02)', borderRadius: '16px', padding: '10px', border: '1px solid var(--engine-border)' }}>
+            <ResponsiveContainer width="100%" height={320} debounce={200}>
               <LineChart data={data.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--engine-text-muted)', fontSize: 12 }} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--engine-text-muted)', fontSize: 12 }} dx={-10} tickFormatter={(val) => `${val}%`} />
@@ -268,6 +268,7 @@ const ProgressView = ({ username }) => {
               </LineChart>
             </ResponsiveContainer>
           </div>
+
         </div>
 
         {/* ROW 2: HOMEWORK, FRIENDS SCORE, AI COACH */}
