@@ -1,5 +1,7 @@
 # Consensus Bedrock Engine
 
+- **URL**: [https://prototype.d3ddhsf8bhejkw.amplifyapp.com/](https://prototype.d3ddhsf8bhejkw.amplifyapp.com/)
+
 A **production-grade, multi-agent AI consensus system** built on AWS. It routes user queries to specialist worker LLMs, scores their answers across 7 quantitative metrics, and invokes a powerful Judge model only when needed — combining the speed of small models with the accuracy of frontier AI.
 
 ![Consensus Frontend Preview](images/frontend_preview.png)
@@ -100,7 +102,6 @@ cdk deploy
 
 ### AWS Amplify (Frontend)
 The frontend is deployed via **AWS Amplify** for global edge delivery:
-- **URL**: [https://prototype.d3ddhsf8bhejkw.amplifyapp.com/](https://prototype.d3ddhsf8bhejkw.amplifyapp.com/)
 - **CI/CD**: Auto-deploys on every push to the `main` branch.
 
 ### AWS Lambda URL (Backend)
