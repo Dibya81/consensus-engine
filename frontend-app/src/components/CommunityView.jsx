@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Send, Heart, MessageSquare, Share2 } from 'lucide-react';
+import { Send, Heart, MessageSquare, Share2, Users } from 'lucide-react';
 
 const MOCK_POSTS = [
   {
     id: 1,
     avatar: 'G',
-    avatarBg: '#8b5cf6',
+    avatarBg: 'var(--engine-accent)',
     author: 'Guest User',
     timestamp: '3/8/2026, 7:26:38 PM',
     content: 'i love modi ji',
@@ -24,7 +24,7 @@ const CommunityView = ({ username }) => {
     const newPost = {
       id: Date.now(),
       avatar: username ? username.charAt(0).toUpperCase() : 'U',
-      avatarBg: '#3b82f6',
+      avatarBg: 'var(--engine-accent)',
       author: username || 'Guest User',
       timestamp: new Date().toLocaleString(),
       content: inputValue,
@@ -41,35 +41,44 @@ const CommunityView = ({ username }) => {
       animate={{ opacity: 1, y: 0 }}
       style={{
         flex: 1,
-        padding: 'clamp(2rem, 5vw, 4rem)',
+        padding: 'clamp(4rem,8vw,5rem) clamp(1rem,4vw,3rem) 2rem clamp(1rem,4vw,3rem)',
         display: 'flex',
         flexDirection: 'column',
-        gap: '2rem',
-        maxWidth: '900px',
+        gap: '1.5rem',
+        maxWidth: '1200px',
         margin: '0 auto',
         width: '100%',
         height: '100%',
-        overflowY: 'auto'
       }}
     >
-      <h1 style={{ 
-        fontFamily: 'var(--font-heading)', 
-        margin: '0 0 1rem 0', 
-        color: '#8b5cf6', 
-        fontSize: 'clamp(1.5rem, 4vw, 2.2rem)',
-        fontWeight: 'bold',
-        textAlign: 'center'
-      }}>
-        Community Feed
-      </h1>
+      <style>{`
+        @media (max-width: 768px) {
+          .community-header { flex-direction: column !important; align-items: flex-start !important; gap: 0.75rem !important; }
+        }
+      `}</style>
+      <div className="community-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1 style={{ fontFamily: 'var(--font-heading)', margin: 0, color: 'var(--engine-text-main)', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: 'clamp(1.4rem,4vw,2rem)', whiteSpace: 'nowrap' }}>
+          <Users size={24} color="var(--engine-accent)" /> Community Feed
+        </h1>
+      </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div style={{
+          flex: 1,
+          backgroundColor: 'var(--engine-panel-bg)',
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--engine-border)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflowY: 'auto',
+          padding: '2rem',
+          gap: '2rem'
+      }}>
         
         {/* Input Box Card */}
         <div style={{
-          backgroundColor: 'gray',
-          backgroundColor: 'color-mix(in srgb, var(--engine-text-muted) 20%, var(--engine-panel-bg))',
-          borderRadius: '24px',
+          backgroundColor: 'color-mix(in srgb, var(--engine-text-muted) 10%, transparent)',
+          borderRadius: '16px',
+          border: '1px solid var(--engine-border)',
           padding: '2rem',
           display: 'flex',
           flexDirection: 'column',
@@ -80,7 +89,7 @@ const CommunityView = ({ username }) => {
               width: '40px',
               height: '40px',
               borderRadius: '50%',
-              backgroundColor: '#8b5cf6',
+              backgroundColor: 'var(--engine-accent)',
               color: '#fff',
               display: 'flex',
               alignItems: 'center',
@@ -117,11 +126,11 @@ const CommunityView = ({ username }) => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                backgroundColor: '#8b5cf6',
+                backgroundColor: 'var(--engine-accent)',
                 color: '#fff',
                 border: 'none',
                 padding: '0.6rem 1.5rem',
-                borderRadius: '99px',
+                borderRadius: '8px',
                 fontSize: '0.95rem',
                 fontWeight: 600,
                 cursor: 'pointer'
@@ -139,9 +148,9 @@ const CommunityView = ({ username }) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             style={{
-              backgroundColor: 'rgba(0,0,0,0.02)',
-              backgroundColor: 'color-mix(in srgb, var(--engine-text-muted) 20%, var(--engine-panel-bg))',
-              borderRadius: '24px',
+              backgroundColor: 'color-mix(in srgb, var(--engine-text-muted) 10%, transparent)',
+              borderRadius: '16px',
+              border: '1px solid var(--engine-border)',
               padding: '2rem',
               display: 'flex',
               flexDirection: 'column',

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Activity, Link2, BookOpen, Shield, Code, Cpu } from 'lucide-react';
+import { Activity, Link2, BookOpen, Shield, Code, Cpu, Compass } from 'lucide-react';
 
 const paths = [
   {
@@ -61,40 +61,47 @@ const CareerView = ({ username }) => {
       animate={{ opacity: 1, y: 0 }}
       style={{
         flex: 1,
-        padding: 'clamp(2rem, 5vw, 4rem)',
+        padding: 'clamp(4rem,8vw,5rem) clamp(1rem,4vw,3rem) 2rem clamp(1rem,4vw,3rem)',
         display: 'flex',
         flexDirection: 'column',
-        gap: '2rem',
+        gap: '1.5rem',
         maxWidth: '1200px',
         margin: '0 auto',
         width: '100%',
         height: '100%',
-        overflowY: 'auto'
       }}
     >
-      <h1 style={{ 
-        fontFamily: 'var(--font-heading)', 
-        margin: '0 0 1rem 0', 
-        color: '#8b5cf6', 
-        fontSize: 'clamp(1.5rem, 4vw, 2.2rem)',
-        fontWeight: 'bold'
-      }}>
-        Career Roadmaps
-      </h1>
+      <style>{`
+        @media (max-width: 768px) {
+          .career-header { flex-direction: column !important; align-items: flex-start !important; gap: 0.75rem !important; }
+        }
+      `}</style>
+      <div className="career-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1 style={{ fontFamily: 'var(--font-heading)', margin: 0, color: 'var(--engine-text-main)', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: 'clamp(1.4rem,4vw,2rem)', whiteSpace: 'nowrap' }}>
+          <Compass size={24} color="var(--engine-accent)" /> Career Roadmaps
+        </h1>
+      </div>
 
-      <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+      <div style={{
+          flex: 1,
+          backgroundColor: 'var(--engine-panel-bg)',
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--engine-border)',
+          display: 'flex',
+          overflow: 'hidden',
+          flexWrap: 'wrap'
+      }}>
         
         {/* Sidebar: Explore Paths */}
         <div style={{
           flex: '0 0 300px',
-          backgroundColor: 'gray',
-          backgroundColor: 'color-mix(in srgb, var(--engine-text-muted) 20%, var(--engine-panel-bg))',
-          borderRadius: '24px',
+          borderRight: '1px solid var(--engine-border)',
           padding: '1.5rem',
           display: 'flex',
           flexDirection: 'column',
           gap: '1rem',
-          minWidth: '250px'
+          minWidth: '250px',
+          overflowY: 'auto'
         }}>
           <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--engine-text-main)', fontSize: '1.1rem', fontWeight: 600 }}>Explore Paths</h3>
           
@@ -105,9 +112,9 @@ const CareerView = ({ username }) => {
                 onClick={() => setActivePathId(path.id)}
                 style={{
                   padding: '1.25rem',
-                  borderRadius: '16px',
-                  backgroundColor: activePathId === path.id ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
-                  border: activePathId === path.id ? '1px solid rgba(59, 130, 246, 0.2)' : '1px solid transparent',
+                  borderRadius: '12px',
+                  backgroundColor: activePathId === path.id ? 'color-mix(in srgb, var(--engine-accent) 15%, transparent)' : 'transparent',
+                  border: activePathId === path.id ? '1px solid var(--engine-border)' : '1px solid transparent',
                   cursor: 'pointer',
                   transition: 'background-color 0.2s',
                   display: 'flex',
@@ -125,12 +132,10 @@ const CareerView = ({ username }) => {
         {/* Main Content Area */}
         <div style={{
           flex: '1 1 500px',
-          backgroundColor: 'color-mix(in srgb, var(--engine-text-muted) 20%, var(--engine-panel-bg))',
-          borderRadius: '24px',
           padding: '2.5rem',
-          minHeight: '400px',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          overflowY: 'auto'
         }}>
           <motion.div
             key={activePath.id}
@@ -149,12 +154,12 @@ const CareerView = ({ username }) => {
               
               {/* Required Skills */}
               <div style={{
-                backgroundColor: 'rgba(0,0,0,0.03)',
+                backgroundColor: 'color-mix(in srgb, var(--engine-text-muted) 10%, transparent)',
                 border: '1px solid var(--engine-border)',
                 borderRadius: '16px',
                 padding: '1.5rem'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: '#8b5cf6' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--engine-accent)' }}>
                   <Activity size={18} />
                   <h3 style={{ margin: 0, color: 'var(--engine-text-main)', fontSize: '1.1rem', fontWeight: 600 }}>Required Skills</h3>
                 </div>
@@ -167,19 +172,19 @@ const CareerView = ({ username }) => {
 
               {/* Learning Resources */}
               <div style={{
-                backgroundColor: 'rgba(0,0,0,0.03)',
+                backgroundColor: 'color-mix(in srgb, var(--engine-text-muted) 10%, transparent)',
                 border: '1px solid var(--engine-border)',
                 borderRadius: '16px',
                 padding: '1.5rem'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: '#3b82f6' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--engine-accent)' }}>
                   <Link2 size={18} />
                   <h3 style={{ margin: 0, color: 'var(--engine-text-main)', fontSize: '1.1rem', fontWeight: 600 }}>Learning Resources</h3>
                 </div>
                 <ul style={{ margin: 0, padding: '0 0 0 1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.95rem' }}>
                   {activePath.resources.map((res, idx) => (
                     <li key={idx} style={{ paddingLeft: '0.5rem', color: 'var(--engine-text-muted)' }}>
-                      <a href={res.url} style={{ color: '#8b5cf6', textDecoration: 'none' }}>{res.name}</a>
+                      <a href={res.url} style={{ color: 'var(--engine-accent)', textDecoration: 'none' }}>{res.name}</a>
                     </li>
                   ))}
                 </ul>
