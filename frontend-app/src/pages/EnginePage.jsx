@@ -59,6 +59,8 @@ const EnginePage = () => {
   const [currentSessionId, setCurrentSessionId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isDeepDiveLoading, setIsDeepDiveLoading] = useState(false);
+  const [globalStopSignal, setGlobalStopSignal] = useState(0);
+  const [isAnyTyping, setIsAnyTyping] = useState(false);
   const [greetings, setGreetings] = useState([]);
   const [attachments, setAttachments] = useState([]);
   const [showPlusMenu, setShowPlusMenu] = useState(false);
@@ -824,6 +826,8 @@ const EnginePage = () => {
                       message={msg}
                       onSelect={handleSelectAnswer}
                       onDeepDive={handleDeepDive}
+                      stopSignal={globalStopSignal}
+                      onTypingStatusChange={(status) => setIsAnyTyping(status)}
                       onScroll={() => {
                         if (feedRef.current) {
                           feedRef.current.scrollTop = feedRef.current.scrollHeight;
@@ -927,9 +931,15 @@ const EnginePage = () => {
                         </AnimatePresence>
                       </div>
                     </div>
-                    <button type="submit" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                      <ArrowUp size={20} color={(inputValue.trim() || attachments.length > 0) ? "#fff" : "#666"} />
-                    </button>
+                    {isAnyTyping ? (
+                       <button type="button" onClick={() => setGlobalStopSignal(s => s + 1)} title="Stop Generating" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0 0.5rem', display: 'flex', alignItems: 'center' }}>
+                         <div style={{ width: 14, height: 14, backgroundColor: '#f43f5e', borderRadius: 2 }} />
+                       </button>
+                    ) : (
+                       <button type="submit" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                         <ArrowUp size={20} color={(inputValue.trim() || attachments.length > 0) ? "#text-main" : "#666"} />
+                       </button>
+                    )}
                   </div>
                 </form>
                 <input

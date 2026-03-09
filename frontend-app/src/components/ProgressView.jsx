@@ -41,11 +41,11 @@ const ProgressView = ({ username }) => {
       await fetch(LAMBDA_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          action: 'SAVE_USER_DATA', 
-          username, 
-          data_type: 'learning_progress_topics', 
-          payload: updatedTopics 
+        body: JSON.stringify({
+          action: 'SAVE_USER_DATA',
+          username,
+          data_type: 'learning_progress_topics',
+          payload: updatedTopics
         })
       });
     } catch (e) {
@@ -56,24 +56,24 @@ const ProgressView = ({ username }) => {
   const handleAddTopic = async (e) => {
     e.preventDefault();
     if (!newTopic.trim()) return;
-    
+
     const topicEntry = {
       id: Date.now().toString(),
       name: newTopic,
       completed: false,
       dateAdded: new Date().toLocaleDateString()
     };
-    
+
     const updatedTopics = [topicEntry, ...topics];
     setTopics(updatedTopics);
     setNewTopic('');
-    
+
     await saveProgress(updatedTopics);
     generateRecommendation(updatedTopics);
   };
 
   const toggleTopicComplete = async (id) => {
-    const updatedTopics = topics.map(t => 
+    const updatedTopics = topics.map(t =>
       t.id === id ? { ...t, completed: !t.completed } : t
     );
     setTopics(updatedTopics);
@@ -83,19 +83,19 @@ const ProgressView = ({ username }) => {
   const generateRecommendation = async (currentTopics) => {
     if (currentTopics.length === 0) return;
     setIsAnalyzing(true);
-    
+
     const topicNames = currentTopics.map(t => `${t.name} (${t.completed ? 'Completed' : 'In Progress'})`).join(', ');
     const payload = `User's Topics: ${topicNames}`;
-    
+
     try {
       const response = await fetch(LAMBDA_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          action: 'ANALYZE_DATA', 
-          username, 
-          data_type: 'progress', 
-          payload: payload 
+        body: JSON.stringify({
+          action: 'ANALYZE_DATA',
+          username,
+          data_type: 'progress',
+          payload: payload
         })
       });
       const data = await response.json();
@@ -113,7 +113,7 @@ const ProgressView = ({ username }) => {
   const progressRatio = topics.length > 0 ? Math.round((completedCount / topics.length) * 100) : 0;
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       style={{
@@ -136,7 +136,7 @@ const ProgressView = ({ username }) => {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-        
+
         {/* Top Banner */}
         <div style={{
           display: 'flex',
@@ -149,11 +149,11 @@ const ProgressView = ({ username }) => {
           padding: '2rem 3rem',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
         }}>
-          
+
           {/* Consistency */}
           <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <h3 style={{ margin: '0 0 2rem 0', color: 'var(--engine-text-main)', fontSize: '1.1rem', fontWeight: 600 }}>Account Standing</h3>
-            
+
             <div style={{ display: 'flex', gap: '3rem', justifyContent: 'center', width: '100%' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -162,7 +162,7 @@ const ProgressView = ({ username }) => {
                 </div>
                 <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--engine-text-muted)', letterSpacing: '1px' }}>TOTAL TOPICS</span>
               </div>
-              
+
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <span style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--engine-text-main)' }}>{completedCount}</span>
@@ -178,21 +178,32 @@ const ProgressView = ({ username }) => {
           {/* Progress Distribution */}
           <div style={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <h3 style={{ margin: '0 0 2rem 0', color: 'var(--engine-text-main)', fontSize: '1.1rem', fontWeight: 600 }}>Mastery Progress</h3>
-            
+
             <div style={{
               position: 'relative',
               width: '120px',
               height: '120px',
               borderRadius: '50%',
+              background: `conic-gradient(var(--engine-accent) ${progressRatio}%, transparent 0)`,
               backgroundColor: 'var(--engine-panel-bg)',
-              border: '8px solid var(--engine-border)',
-              borderTopColor: progressRatio > 0 ? 'var(--engine-accent)' : 'var(--engine-border)',
+              border: '1px solid var(--engine-border)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+              boxShadow: 'inset 0 0 0 8px var(--engine-panel-bg), 0 4px 6px -1px rgba(0, 0, 0, 0.1)'
             }}>
-              <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--engine-text-main)' }}>{progressRatio}%</span>
+              <div style={{
+                width: '104px',
+                height: '104px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--engine-panel-bg)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 10px rgba(0,0,0,0.05)'
+              }}>
+                <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--engine-text-main)' }}>{progressRatio}%</span>
+              </div>
             </div>
           </div>
 
@@ -200,7 +211,7 @@ const ProgressView = ({ username }) => {
 
         {/* Bottom Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-          
+
           {/* Recent Activity */}
           <div style={{
             backgroundColor: 'var(--engine-panel-bg)',
@@ -217,7 +228,7 @@ const ProgressView = ({ username }) => {
               <Clock size={20} color="var(--engine-accent)" />
               <h3 style={{ margin: 0, color: 'var(--engine-text-main)', fontSize: '1.1rem', fontWeight: 600 }}>Recent Topics Searched</h3>
             </div>
-            
+
             <form onSubmit={handleAddTopic} style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
               <div style={{
                 flex: 1,
@@ -230,8 +241,8 @@ const ProgressView = ({ username }) => {
                 gap: '0.5rem'
               }}>
                 <Search size={16} color="var(--engine-text-muted)" />
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   placeholder="Search and add a topic..."
                   value={newTopic}
                   onChange={(e) => setNewTopic(e.target.value)}
@@ -245,7 +256,7 @@ const ProgressView = ({ username }) => {
                   }}
                 />
               </div>
-              <button 
+              <button
                 type="submit"
                 disabled={!newTopic.trim()}
                 style={{
@@ -268,7 +279,7 @@ const ProgressView = ({ username }) => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', overflowY: 'auto', flex: 1 }}>
               {isLoading ? (
                 <div style={{ display: 'flex', justifyContent: 'center', padding: '1rem' }}>
-                   <Loader2 size={24} className="spin" color="var(--engine-text-muted)" />
+                  <Loader2 size={24} className="spin" color="var(--engine-text-muted)" />
                 </div>
               ) : topics.length === 0 ? (
                 <p style={{ color: 'var(--engine-text-muted)', fontSize: '0.9rem', textAlign: 'center', marginTop: '1rem' }}>
@@ -298,7 +309,7 @@ const ProgressView = ({ username }) => {
                         </span>
                         <span style={{ color: 'var(--engine-text-muted)', fontSize: '0.75rem' }}>Added: {topic.dateAdded}</span>
                       </div>
-                      <button 
+                      <button
                         onClick={() => toggleTopicComplete(topic.id)}
                         style={{
                           background: 'none',
@@ -335,11 +346,11 @@ const ProgressView = ({ username }) => {
               <h3 style={{ margin: 0, color: 'var(--engine-text-main)', fontSize: '1.1rem', fontWeight: 600 }}>AI Roadmap Recommendation</h3>
               {isAnalyzing && <Loader2 size={16} className="spin" color="var(--engine-accent)" style={{ marginLeft: 'auto' }} />}
             </div>
-            
-            <div style={{ 
-              backgroundColor: 'color-mix(in srgb, var(--engine-accent) 15%, transparent)', 
+
+            <div style={{
+              backgroundColor: 'color-mix(in srgb, var(--engine-accent) 15%, transparent)',
               border: '1px solid var(--engine-border)',
-              borderRadius: '8px', 
+              borderRadius: '8px',
               padding: '1.5rem',
               flex: 1,
               overflowY: 'auto'
@@ -352,7 +363,15 @@ const ProgressView = ({ username }) => {
 
         </div>
       </div>
-      <style>{`.spin { animation: spin 1s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        .spin { animation: spin 1s linear infinite; } 
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        /* Slim, matching scrollbar for the right side */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--engine-border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--engine-text-muted); }
+      `}</style>
     </motion.div>
   );
 };

@@ -179,7 +179,21 @@ const CareerView = ({ username }) => {
         height: '100%',
       }}
     >
-      <div className="career-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .career-split {
+            flex-direction: column !important;
+          }
+          .career-sidebar {
+            flex: none !important;
+            width: 100% !important;
+            border-right: none !important;
+            border-bottom: 1px solid var(--engine-border) !important;
+            max-height: 250px !important;
+          }
+        }
+      `}</style>
+      <div className="career-header" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
         <h1 style={{ fontFamily: 'var(--font-heading)', margin: 0, color: 'var(--engine-text-main)', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: 'clamp(1.4rem,4vw,2rem)', whiteSpace: 'nowrap' }}>
           <Compass size={24} color="var(--engine-accent)" /> Career Roadmaps
         </h1>
@@ -233,26 +247,24 @@ const CareerView = ({ username }) => {
         </form>
       </div>
 
-      <div style={{
+      <div className="career-split" style={{
           flex: 1,
           backgroundColor: 'var(--engine-panel-bg)',
           borderRadius: 'var(--radius-lg)',
           border: '1px solid var(--engine-border)',
           display: 'flex',
           overflow: 'hidden',
-          flexWrap: 'wrap',
           minHeight: '400px'
       }}>
         
         {/* Sidebar: Explore Paths */}
-        <div style={{
+        <div className="career-sidebar" style={{
           flex: '0 0 300px',
           borderRight: '1px solid var(--engine-border)',
           padding: '1.5rem',
           display: 'flex',
           flexDirection: 'column',
           gap: '1rem',
-          minWidth: '250px',
           overflowY: 'auto',
           maxHeight: '100%'
         }}>
