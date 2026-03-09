@@ -475,6 +475,16 @@ const EnginePage = () => {
     setMousePos({ x, y });
   };
 
+  const handleTouchMove = (e) => {
+    if (!e.touches || !e.touches[0]) return;
+    const touch = e.touches[0];
+    const { clientX, clientY } = touch;
+    const { width, height } = e.currentTarget.getBoundingClientRect();
+    const x = (clientX / width) * 100;
+    const y = (clientY / height) * 100;
+    setMousePos({ x, y });
+  };
+
   const handleVoiceInput = () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       alert("Your browser doesn't support speech recognition. Try Google Chrome.");
@@ -571,6 +581,7 @@ const EnginePage = () => {
     <div
       className={styles.engineContainer}
       onMouseMove={handleMouseMove}
+      onTouchMove={handleTouchMove}
       style={{
         '--mouse-x': `${mousePos.x}%`,
         '--mouse-y': `${mousePos.y}%`

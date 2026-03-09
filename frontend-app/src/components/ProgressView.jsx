@@ -147,7 +147,7 @@ const ProgressView = ({ username }) => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
         {/* Top Banner */}
-        <div style={{
+        <div className="progress-banner" style={{
           display: 'flex',
           flexDirection: 'row',
           flexWrap: 'wrap',
@@ -219,7 +219,7 @@ const ProgressView = ({ username }) => {
         </div>
 
         {/* Bottom Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+        <div className="progress-bottom-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
 
           {/* Recent Activity */}
           <div style={{
@@ -233,12 +233,12 @@ const ProgressView = ({ username }) => {
             flexDirection: 'column',
             gap: '1rem'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+            <div className="course-tab-container" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <Clock size={20} color="var(--engine-accent)" />
                 <h3 style={{ margin: 0, color: 'var(--engine-text-main)', fontSize: '1.1rem', fontWeight: 600 }}>Your Courses</h3>
               </div>
-              <div style={{ display: 'flex', gap: '0.5rem', backgroundColor: 'var(--engine-bg-color)', padding: '0.25rem', borderRadius: '8px', border: '1px solid var(--engine-border)' }}>
+              <div className="course-tab-container-right" style={{ display: 'flex', gap: '0.5rem', backgroundColor: 'var(--engine-bg-color)', padding: '0.25rem', borderRadius: '8px', border: '1px solid var(--engine-border)' }}>
                 <button
                   onClick={() => setActiveTab('in-progress')}
                   style={{
@@ -444,6 +444,29 @@ const ProgressView = ({ username }) => {
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--engine-border); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--engine-text-muted); }
+        
+        @media (max-width: 768px) {
+          .progress-banner {
+            padding: 1.5rem 1rem !important;
+            flex-direction: column !important;
+            align-items: center !important;
+          }
+          .progress-bottom-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .course-tab-container {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 1rem !important;
+          }
+          .course-tab-container-right {
+            width: 100% !important;
+            justify-content: space-between !important;
+          }
+          .course-tab-container-right button {
+            flex: 1 !important;
+          }
+        }
       `}</style>
     </motion.div>
   );
