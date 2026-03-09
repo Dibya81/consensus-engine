@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Menu, Search, Archive, Plus, ArrowUp, Loader2, FileText, Image, X, Paperclip, Moon, Sun,
-  Code, TrendingUp, History, StickyNote, Home, PieChart, Folder, Settings, MessageSquare, Mic, MicOff, LogOut, Trash2
+  Code, TrendingUp, History, StickyNote, Home, PieChart, Folder, Settings, MessageSquare, Mic, MicOff, LogOut, Trash2, Users, Compass
 } from 'lucide-react';
 import styles from './EnginePage.module.css';
 import ChatMessage from '../components/ChatMessage';
@@ -11,6 +11,8 @@ import Logo from '../components/Logo';
 import NotesView from '../components/NotesView';
 import CodeHubView from '../components/CodeHubView';
 import ProgressView from '../components/ProgressView';
+import CareerView from '../components/CareerView';
+import CommunityView from '../components/CommunityView';
 
 const LAMBDA_URL = "https://6u6a3ub4qmn4qppzc7hdsnflqy0lkold.lambda-url.us-east-1.on.aws/";
 
@@ -631,6 +633,23 @@ const EnginePage = () => {
                 </div>
 
                 <div className={styles.navPillContainer}>
+                  {/* COMMUNITY */}
+                  <div 
+                    className={styles.navItem}
+                    onMouseEnter={() => setHoveredTab('community')}
+                    onMouseLeave={() => setHoveredTab(null)}
+                    onClick={() => { 
+                      setActiveTab('community'); 
+                      setIsNavOpen(false); 
+                    }}
+                    title="Community"
+                  >
+                    {currentTab === 'community' && (
+                      <motion.div layoutId="activeBubble" className={styles.activeBubble} transition={{ type: 'spring', stiffness: 250, damping: 20 }} />
+                    )}
+                    <Users size={22} className={styles.navIcon} style={{ color: currentTab === 'community' ? '#fff' : 'currentColor' }} />
+                  </div>
+
                   {/* PROGRESS */}
                   <div 
                     className={styles.navItem}
@@ -646,6 +665,23 @@ const EnginePage = () => {
                       <motion.div layoutId="activeBubble" className={styles.activeBubble} transition={{ type: 'spring', stiffness: 250, damping: 20 }} />
                     )}
                     <TrendingUp size={22} className={styles.navIcon} style={{ color: currentTab === 'progress' ? '#fff' : 'currentColor' }} />
+                  </div>
+
+                  {/* CAREER */}
+                  <div 
+                    className={styles.navItem}
+                    onMouseEnter={() => setHoveredTab('career')}
+                    onMouseLeave={() => setHoveredTab(null)}
+                    onClick={() => { 
+                      setActiveTab('career'); 
+                      setIsNavOpen(false); 
+                    }}
+                    title="Career Roadmaps"
+                  >
+                    {currentTab === 'career' && (
+                      <motion.div layoutId="activeBubble" className={styles.activeBubble} transition={{ type: 'spring', stiffness: 250, damping: 20 }} />
+                    )}
+                    <Compass size={22} className={styles.navIcon} style={{ color: currentTab === 'career' ? '#fff' : 'currentColor' }} />
                   </div>
 
                   {/* CODE HUB */}
@@ -923,6 +959,16 @@ const EnginePage = () => {
               <ProgressView username={username} />
             </motion.div>
           )}
+          {activeTab === 'career' && (
+            <motion.div key="career" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} style={{ height: '100%', width: '100%' }}>
+              <CareerView username={username} />
+            </motion.div>
+          )}
+          {activeTab === 'community' && (
+            <motion.div key="community" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} style={{ height: '100%', width: '100%' }}>
+              <CommunityView username={username} />
+            </motion.div>
+          )}
         </AnimatePresence>
 
       </main>
@@ -1048,11 +1094,25 @@ const EnginePage = () => {
           <span>Chat</span>
         </button>
         <button 
+          className={`${styles.mobileNavItem} ${activeTab === 'community' ? styles.mobileNavItemActive : ''}`}
+          onClick={() => setActiveTab('community')}
+        >
+          <Users size={20} />
+          <span>Community</span>
+        </button>
+        <button 
           className={`${styles.mobileNavItem} ${activeTab === 'progress' ? styles.mobileNavItemActive : ''}`}
           onClick={() => setActiveTab('progress')}
         >
           <TrendingUp size={20} />
           <span>Insights</span>
+        </button>
+        <button 
+          className={`${styles.mobileNavItem} ${activeTab === 'career' ? styles.mobileNavItemActive : ''}`}
+          onClick={() => setActiveTab('career')}
+        >
+          <Compass size={20} />
+          <span>Career</span>
         </button>
         <button 
           className={`${styles.mobileNavItem} ${activeTab === 'notes' ? styles.mobileNavItemActive : ''}`}
