@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Link2, BookOpen, Shield, Code, Cpu, Compass, Search, Loader2 } from 'lucide-react';
+import { Activity, Link2, BookOpen, Shield, Code, Cpu, Compass, Search, Loader2, Play, CheckCircle } from 'lucide-react';
 
 const LAMBDA_URL = "https://6u6a3ub4qmn4qppzc7hdsnflqy0lkold.lambda-url.us-east-1.on.aws/";
 
@@ -32,6 +32,8 @@ const CareerView = ({ username }) => {
   const [activePathId, setActivePathId] = useState('dsa');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [enrolledTopics, setEnrolledTopics] = useState([]);
+  const [isEnrolling, setIsEnrolling] = useState(false);
   
   useEffect(() => {
     // Load saved career paths from backend
@@ -51,7 +53,25 @@ const CareerView = ({ username }) => {
         console.error("Failed to load paths", e);
       }
     };
+    
+    const fetchEnrolled = async () => {
+      try {
+        const res = await fetch(LAMBDA_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'GET_USER_DATA', username, data_type: 'learning_progress_topics' })
+        });
+        const data = await res.json();
+        if (data.data && Array.isArray(data.data)) {
+          setEnrolledTopics(data.data.map(t => t.name));
+        }
+      } catch (e) {
+        console.error("Failed to load enrolled topics", e);
+      }
+    };
+    
     loadPaths();
+    fetchEnrolled();
   }, [username]);
 
   const savePaths = async (newPaths) => {
@@ -94,7 +114,54 @@ const CareerView = ({ username }) => {
     }
   };
 
+  const handleStartCourse = async (path) => {
+    setIsEnrolling(true);
+    try {
+        const res = await fetch(LAMBDA_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'GET_USER_DATA', username, data_type: 'learning_progress_topics' })
+        });
+        const data = await res.json();
+        let currentTopics = (data.data && Array.isArray(data.data)) ? data.data : [];
+        
+        let topicsToAdd = path.modules && path.modules.length > 0 ? path.modules : [path.title];
+        let newAdded = false;
+        
+        topicsToAdd.forEach(topicStr => {
+           if (!currentTopics.find(t => t.name === topicStr)) {
+               currentTopics.unshift({
+                   id: Date.now().toString() + Math.random().toString().substring(2,6),
+                   name: topicStr,
+                   completed: false,
+                   dateAdded: new Date().toLocaleDateString()
+               });
+               newAdded = true;
+           }
+        });
+        
+        if (newAdded) {
+            await fetch(LAMBDA_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    action: 'SAVE_USER_DATA', 
+                    username, 
+                    data_type: 'learning_progress_topics', 
+                    payload: currentTopics 
+                })
+            });
+            setEnrolledTopics(prev => [...prev, ...topicsToAdd]);
+        }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsEnrolling(false);
+    }
+  };
+
   const activePath = paths.find(p => p.id === activePathId) || paths[0];
+  const isEnrolled = activePath ? (activePath.modules && activePath.modules.length > 0 ? activePath.modules.some(mod => enrolledTopics.includes(mod)) : enrolledTopics.includes(activePath.title)) : false;
 
   return (
     <motion.div 
@@ -233,9 +300,30 @@ const CareerView = ({ username }) => {
                 transition={{ duration: 0.2 }}
                 style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
               >
-                <h2 style={{ margin: '0 0 1rem 0', color: 'var(--engine-text-main)', fontSize: '1.8rem', fontWeight: 'bold' }}>
-                  {activePath.title}
-                </h2>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
+                  <h2 style={{ margin: 0, color: 'var(--engine-text-main)', fontSize: '1.8rem', fontWeight: 'bold' }}>
+                    {activePath.title}
+                  </h2>
+                  <button 
+                    onClick={() => handleStartCourse(activePath)}
+                    disabled={isEnrolling || isEnrolled}
+                    style={{
+                      backgroundColor: isEnrolled ? '#22c55e' : 'var(--engine-accent)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#fff',
+                      padding: '0.6rem 1.2rem',
+                      fontWeight: 600,
+                      cursor: (isEnrolling || isEnrolled) ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}
+                  >
+                      {isEnrolling ? <Loader2 size={16} className="spin" /> : (isEnrolled ? <CheckCircle size={16} /> : <Play size={16} fill="currentColor" />)}
+                      {isEnrolled ? 'Course Details Sent to Progress' : 'Start Course'}
+                  </button>
+                </div>
                 <p style={{ margin: '0 0 2rem 0', color: 'var(--engine-text-muted)', fontSize: '1rem' }}>
                   {activePath.desc}
                 </p>
@@ -279,6 +367,27 @@ const CareerView = ({ username }) => {
                       ))}
                     </ul>
                   </div>
+
+                  {/* Course Modules */}
+                  {activePath.modules && activePath.modules.length > 0 && (
+                      <div style={{
+                        backgroundColor: 'color-mix(in srgb, var(--engine-text-muted) 10%, transparent)',
+                        border: '1px solid var(--engine-border)',
+                        borderRadius: '16px',
+                        padding: '1.5rem',
+                        gridColumn: '1 / -1' // Span full width
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--engine-accent)' }}>
+                          <BookOpen size={18} />
+                          <h3 style={{ margin: 0, color: 'var(--engine-text-main)', fontSize: '1.1rem', fontWeight: 600 }}>Course Modules</h3>
+                        </div>
+                        <ul style={{ margin: 0, padding: '0 0 0 1.25rem', color: 'var(--engine-text-muted)', display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.95rem' }}>
+                          {activePath.modules.map((mod, idx) => (
+                            <li key={idx} style={{ paddingLeft: '0.5rem' }}>{mod}</li>
+                          ))}
+                        </ul>
+                      </div>
+                  )}
 
                 </div>
               </motion.div>
