@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, Clock, Zap, Search, Plus, CheckCircle, Loader2, Target, Award } from 'lucide-react';
+import { TrendingUp, Clock, Zap, Search, Plus, CheckCircle, Loader2, Target, Award, Trash2 } from 'lucide-react';
 
 const LAMBDA_URL = "https://6u6a3ub4qmn4qppzc7hdsnflqy0lkold.lambda-url.us-east-1.on.aws/";
 
@@ -10,6 +10,8 @@ const ProgressView = ({ username }) => {
   const [recommendation, setRecommendation] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  const [activeTab, setActiveTab] = useState('in-progress');
 
   useEffect(() => {
     fetchProgress();
@@ -78,6 +80,13 @@ const ProgressView = ({ username }) => {
     );
     setTopics(updatedTopics);
     await saveProgress(updatedTopics);
+  };
+
+  const deleteTopic = async (id) => {
+    const updatedTopics = topics.filter(t => t.id !== id);
+    setTopics(updatedTopics);
+    await saveProgress(updatedTopics);
+    generateRecommendation(updatedTopics);
   };
 
   const generateRecommendation = async (currentTopics) => {
@@ -224,9 +233,47 @@ const ProgressView = ({ username }) => {
             flexDirection: 'column',
             gap: '1rem'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-              <Clock size={20} color="var(--engine-accent)" />
-              <h3 style={{ margin: 0, color: 'var(--engine-text-main)', fontSize: '1.1rem', fontWeight: 600 }}>Recent Topics Searched</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <Clock size={20} color="var(--engine-accent)" />
+                <h3 style={{ margin: 0, color: 'var(--engine-text-main)', fontSize: '1.1rem', fontWeight: 600 }}>Your Courses</h3>
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', backgroundColor: 'var(--engine-bg-color)', padding: '0.25rem', borderRadius: '8px', border: '1px solid var(--engine-border)' }}>
+                <button
+                  onClick={() => setActiveTab('in-progress')}
+                  style={{
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '6px',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    backgroundColor: activeTab === 'in-progress' ? 'var(--engine-panel-bg)' : 'transparent',
+                    color: activeTab === 'in-progress' ? 'var(--engine-text-main)' : 'var(--engine-text-muted)',
+                    boxShadow: activeTab === 'in-progress' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  In Progress
+                </button>
+                <button
+                  onClick={() => setActiveTab('completed')}
+                  style={{
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '6px',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    backgroundColor: activeTab === 'completed' ? 'var(--engine-panel-bg)' : 'transparent',
+                    color: activeTab === 'completed' ? 'var(--engine-text-main)' : 'var(--engine-text-muted)',
+                    boxShadow: activeTab === 'completed' ? '0 2px 4px rgba(0,0,0,0.05)' : 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Completed
+                </button>
+              </div>
             </div>
 
             <form onSubmit={handleAddTopic} style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
@@ -276,18 +323,18 @@ const ProgressView = ({ username }) => {
               </button>
             </form>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', overflowY: 'auto', flex: 1 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', overflowY: 'auto', flex: 1, maxHeight: '350px' }}>
               {isLoading ? (
                 <div style={{ display: 'flex', justifyContent: 'center', padding: '1rem' }}>
                   <Loader2 size={24} className="spin" color="var(--engine-text-muted)" />
                 </div>
-              ) : topics.length === 0 ? (
+              ) : topics.filter(t => activeTab === 'in-progress' ? !t.completed : t.completed).length === 0 ? (
                 <p style={{ color: 'var(--engine-text-muted)', fontSize: '0.9rem', textAlign: 'center', marginTop: '1rem' }}>
-                  No recent topics found. Search and add one to get started!
+                  {activeTab === 'in-progress' ? "No courses in progress. Search and add one to get started!" : "No completed courses yet. Keep learning!"}
                 </p>
               ) : (
                 <AnimatePresence>
-                  {topics.map(topic => (
+                  {topics.filter(t => activeTab === 'in-progress' ? !t.completed : t.completed).map(topic => (
                     <motion.div
                       key={topic.id}
                       initial={{ opacity: 0, y: -10 }}
@@ -309,20 +356,46 @@ const ProgressView = ({ username }) => {
                         </span>
                         <span style={{ color: 'var(--engine-text-muted)', fontSize: '0.75rem' }}>Added: {topic.dateAdded}</span>
                       </div>
-                      <button
-                        onClick={() => toggleTopicComplete(topic.id)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: topic.completed ? '#22c55e' : 'var(--engine-text-muted)',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center'
-                        }}
-                        title={topic.completed ? "Mark as Incomplete" : "Mark as Completed"}
-                      >
-                        <CheckCircle size={20} />
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <button
+                          onClick={() => toggleTopicComplete(topic.id)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: topic.completed ? '#22c55e' : 'var(--engine-text-muted)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '0.4rem',
+                            borderRadius: '50%',
+                            transition: 'background-color 0.2s'
+                          }}
+                          onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)'}
+                          onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                          title={topic.completed ? "Mark as Incomplete" : "Mark as Completed"}
+                        >
+                          <CheckCircle size={20} />
+                        </button>
+                        <button
+                          onClick={() => deleteTopic(topic.id)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#f43f5e',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '0.4rem',
+                            borderRadius: '50%',
+                            transition: 'background-color 0.2s'
+                          }}
+                          onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(244, 63, 94, 0.1)'}
+                          onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                          title="Delete Course"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </motion.div>
                   ))}
                 </AnimatePresence>
