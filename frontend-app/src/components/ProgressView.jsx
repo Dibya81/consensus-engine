@@ -184,7 +184,7 @@ const ProgressView = ({ username }) => {
               width: '120px',
               height: '120px',
               borderRadius: '50%',
-              background: `conic-gradient(var(--engine-accent) ${progressRatio}%, transparent 0)`,
+              backgroundImage: `conic-gradient(var(--engine-accent) ${progressRatio}%, transparent 0)`,
               backgroundColor: 'var(--engine-panel-bg)',
               border: '1px solid var(--engine-border)',
               display: 'flex',

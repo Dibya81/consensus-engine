@@ -189,7 +189,21 @@ const CareerView = ({ username }) => {
             width: 100% !important;
             border-right: none !important;
             border-bottom: 1px solid var(--engine-border) !important;
-            max-height: 250px !important;
+            max-height: 200px !important;
+            padding: 1rem !important;
+          }
+          .career-sidebar h3 {
+            display: none !important;
+          }
+          .career-sidebar-list {
+            flex-direction: row !important;
+            overflow-x: auto !important;
+            padding-bottom: 0.5rem !important;
+            scroll-snap-type: x mandatory !important;
+          }
+          .career-sidebar-item {
+            min-width: 260px !important;
+            scroll-snap-align: start !important;
           }
         }
       `}</style>
@@ -270,10 +284,11 @@ const CareerView = ({ username }) => {
         }}>
           <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--engine-text-main)', fontSize: '1.1rem', fontWeight: 600 }}>Your Roadmaps</h3>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div className="career-sidebar-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {paths.map(path => (
               <div 
                 key={path.id}
+                className="career-sidebar-item"
                 onClick={() => setActivePathId(path.id)}
                 style={{
                   padding: '1.25rem',
