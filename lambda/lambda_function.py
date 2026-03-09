@@ -465,6 +465,30 @@ async def process_notes_analysis(payload: str, mode: str = 'analyze'):
             "responses": worker_results
         }
 
+async def process_career_roadmap(topic: str):
+    llama = Llama4ScoutAgent()
+    prompt = f"Create a career or learning roadmap for the topic: '{topic}'. Return ONLY a valid JSON object string with this exact structure: {{\"title\": \"{topic} Roadmap\", \"desc\": \"A short description\", \"skills\": [\"skill1\", \"skill2\"], \"resources\": [{{\"name\": \"Website Name\", \"url\": \"https://...\"}}]}}. Use real facts and real URLs. Do not include markdown formatting like ```json."
+    
+    result = await llama.generate(prompt)
+    content = result["content"]
+    import re
+    try:
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+            parsed = json.loads(json_match.group())
+            parsed['id'] = topic.lower().replace(" ", "-")
+            return parsed
+    except:
+        pass
+        
+    return {
+        "id": topic.lower().replace(" ", "-"),
+        "title": f"{topic} Roadmap",
+        "desc": content[:200] + "...",
+        "skills": ["Foundations", "Core Principles"],
+        "resources": [{"name": f"Search for {topic}", "url": f"https://google.com/search?q={topic}"}]
+    }
+
 async def process_ai_analysis(payload: str, data_type: str, language: str = None):
     judge = NovaProAgent()
     if data_type == 'code_hub':
@@ -691,6 +715,13 @@ def lambda_handler(event, context):
                 return {"statusCode": 400, "headers": headers, "body": json.dumps({"error": "Code is required for execution."})}
             execution_result = asyncio.run(simulate_code_execution(code, language))
             return {"statusCode": 200, "headers": headers, "body": json.dumps({"data": execution_result})}
+            
+        elif action == "GENERATE_CAREER_ROADMAP":
+            topic = body.get("topic", "")
+            if not topic:
+                return {"statusCode": 400, "headers": headers, "body": json.dumps({"error": "Topic is required"})}
+            result = asyncio.run(process_career_roadmap(topic))
+            return {"statusCode": 200, "headers": headers, "body": json.dumps({"data": result})}
         
         else:
             return {"statusCode": 400, "headers": headers, "body": json.dumps({"error": "Unknown action"})}

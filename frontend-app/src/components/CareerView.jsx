@@ -1,59 +1,100 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Activity, Link2, BookOpen, Shield, Code, Cpu, Compass } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Activity, Link2, BookOpen, Shield, Code, Cpu, Compass, Search, Loader2 } from 'lucide-react';
 
-const paths = [
+const LAMBDA_URL = "https://6u6a3ub4qmn4qppzc7hdsnflqy0lkold.lambda-url.us-east-1.on.aws/";
+
+const defaultPaths = [
   {
     id: 'dsa',
     title: 'Data Structures & Algorithms',
     desc: 'Learn problem solving and algorithms used in technical interviews.',
-    icon: <BookOpen size={18} />,
     skills: ['Arrays', 'Linked Lists', 'Trees', 'Graphs', 'Dynamic Programming'],
     resources: [
-      { name: 'leetcode.com', url: '#' },
-      { name: 'www.geeksforgeeks.org', url: '#' },
-      { name: 'takeuforward.org', url: '#' }
+      { name: 'leetcode.com', url: 'https://leetcode.com' },
+      { name: 'www.geeksforgeeks.org', url: 'https://www.geeksforgeeks.org' }
     ]
   },
   {
     id: 'cyber',
     title: 'Cyber Security',
     desc: 'Learn how to protect systems and perform penetration testing.',
-    icon: <Shield size={18} />,
-    skills: ['Network Fundamentals', 'Cryptography', 'Penetration Testing', 'Malware Analysis'],
+    skills: ['Network Fundamentals', 'Cryptography', 'Penetration Testing'],
     resources: [
-      { name: 'tryhackme.com', url: '#' },
-      { name: 'hackthebox.com', url: '#' }
-    ]
-  },
-  {
-    id: 'web',
-    title: 'Full Stack Web Development',
-    desc: 'Build modern web applications using frontend and backend technologies.',
-    icon: <Code size={18} />,
-    skills: ['HTML/CSS', 'JavaScript/TypeScript', 'React', 'Node.js', 'Databases'],
-    resources: [
-      { name: 'freecodecamp.org', url: '#' },
-      { name: 'theodinproject.com', url: '#' }
-    ]
-  },
-  {
-    id: 'ai',
-    title: 'Artificial Intelligence / Machine Learning',
-    desc: 'Develop intelligent systems using machine learning and deep learning.',
-    icon: <Cpu size={18} />,
-    skills: ['Python', 'Linear Algebra', 'TensorFlow/PyTorch', 'Data Processing'],
-    resources: [
-      { name: 'kaggle.com', url: '#' },
-      { name: 'fast.ai', url: '#' }
+      { name: 'tryhackme.com', url: 'https://tryhackme.com' },
+      { name: 'hackthebox.com', url: 'https://hackthebox.com' }
     ]
   }
 ];
 
 const CareerView = ({ username }) => {
+  const [paths, setPaths] = useState(defaultPaths);
   const [activePathId, setActivePathId] = useState('dsa');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  
+  useEffect(() => {
+    // Load saved career paths from backend
+    const loadPaths = async () => {
+      try {
+        const res = await fetch(LAMBDA_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'GET_USER_DATA', username, data_type: 'career_paths' })
+        });
+        const data = await res.json();
+        if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+          setPaths(data.data);
+          setActivePathId(data.data[0].id);
+        }
+      } catch (e) {
+        console.error("Failed to load paths", e);
+      }
+    };
+    loadPaths();
+  }, [username]);
 
-  const activePath = paths.find(p => p.id === activePathId);
+  const savePaths = async (newPaths) => {
+    try {
+      await fetch(LAMBDA_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'SAVE_USER_DATA', username, data_type: 'career_paths', payload: newPaths })
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim() || isSearching) return;
+    
+    setIsSearching(true);
+    try {
+      const response = await fetch(LAMBDA_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'GENERATE_CAREER_ROADMAP', username, topic: searchQuery })
+      });
+      const data = await response.json();
+      
+      if (data.data && data.data.id) {
+        const newPath = data.data;
+        const updatedPaths = [...paths, newPath];
+        setPaths(updatedPaths);
+        setActivePathId(newPath.id);
+        savePaths(updatedPaths);
+        setSearchQuery('');
+      }
+    } catch (error) {
+      console.error("Error generating roadmap:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const activePath = paths.find(p => p.id === activePathId) || paths[0];
 
   return (
     <motion.div 
@@ -71,15 +112,58 @@ const CareerView = ({ username }) => {
         height: '100%',
       }}
     >
-      <style>{`
-        @media (max-width: 768px) {
-          .career-header { flex-direction: column !important; align-items: flex-start !important; gap: 0.75rem !important; }
-        }
-      `}</style>
-      <div className="career-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="career-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <h1 style={{ fontFamily: 'var(--font-heading)', margin: 0, color: 'var(--engine-text-main)', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: 'clamp(1.4rem,4vw,2rem)', whiteSpace: 'nowrap' }}>
           <Compass size={24} color="var(--engine-accent)" /> Career Roadmaps
         </h1>
+        
+        {/* Search Bar */}
+        <form onSubmit={handleSearch} style={{ display: 'flex', gap: '0.5rem', width: '100%', maxWidth: '400px' }}>
+          <div style={{
+            flex: 1,
+            backgroundColor: 'var(--engine-panel-bg)',
+            border: '1px solid var(--engine-border)',
+            borderRadius: '99px',
+            padding: '0.5rem 1rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}>
+            <Search size={16} color="var(--engine-text-muted)" />
+            <input 
+              type="text" 
+              placeholder="Generate roadmap for a topic..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                color: 'var(--engine-text-main)',
+                width: '100%',
+                fontSize: '0.9rem'
+              }}
+            />
+          </div>
+          <button 
+            type="submit"
+            disabled={isSearching || !searchQuery.trim()}
+            style={{
+              backgroundColor: isSearching ? 'var(--engine-border)' : 'var(--engine-accent)',
+              border: 'none',
+              borderRadius: '99px',
+              color: '#fff',
+              padding: '0 1.2rem',
+              fontWeight: 600,
+              cursor: isSearching || !searchQuery.trim() ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            {isSearching ? <Loader2 size={16} className="spin" /> : 'Create'}
+          </button>
+        </form>
       </div>
 
       <div style={{
@@ -89,7 +173,8 @@ const CareerView = ({ username }) => {
           border: '1px solid var(--engine-border)',
           display: 'flex',
           overflow: 'hidden',
-          flexWrap: 'wrap'
+          flexWrap: 'wrap',
+          minHeight: '400px'
       }}>
         
         {/* Sidebar: Explore Paths */}
@@ -101,9 +186,10 @@ const CareerView = ({ username }) => {
           flexDirection: 'column',
           gap: '1rem',
           minWidth: '250px',
-          overflowY: 'auto'
+          overflowY: 'auto',
+          maxHeight: '100%'
         }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--engine-text-main)', fontSize: '1.1rem', fontWeight: 600 }}>Explore Paths</h3>
+          <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--engine-text-main)', fontSize: '1.1rem', fontWeight: 600 }}>Your Roadmaps</h3>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {paths.map(path => (
@@ -123,7 +209,7 @@ const CareerView = ({ username }) => {
                 }}
               >
                 <h4 style={{ margin: 0, color: 'var(--engine-text-main)', fontSize: '1rem', fontWeight: 600 }}>{path.title}</h4>
-                <p style={{ margin: 0, color: 'var(--engine-text-muted)', fontSize: '0.85rem', lineHeight: 1.4 }}>{path.desc}</p>
+                <p style={{ margin: 0, color: 'var(--engine-text-muted)', fontSize: '0.85rem', lineHeight: 1.4 }}>{path.desc.substring(0, 60)}...</p>
               </div>
             ))}
           </div>
@@ -137,61 +223,67 @@ const CareerView = ({ username }) => {
           flexDirection: 'column',
           overflowY: 'auto'
         }}>
-          <motion.div
-            key={activePath.id}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <h2 style={{ margin: '0 0 1rem 0', color: 'var(--engine-text-main)', fontSize: '1.8rem', fontWeight: 'bold' }}>
-              {activePath.title}
-            </h2>
-            <p style={{ margin: '0 0 2rem 0', color: 'var(--engine-text-muted)', fontSize: '1rem' }}>
-              {activePath.desc}
-            </p>
+          <AnimatePresence mode="wait">
+            {activePath && (
+              <motion.div
+                key={activePath.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+              >
+                <h2 style={{ margin: '0 0 1rem 0', color: 'var(--engine-text-main)', fontSize: '1.8rem', fontWeight: 'bold' }}>
+                  {activePath.title}
+                </h2>
+                <p style={{ margin: '0 0 2rem 0', color: 'var(--engine-text-muted)', fontSize: '1rem' }}>
+                  {activePath.desc}
+                </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
-              
-              {/* Required Skills */}
-              <div style={{
-                backgroundColor: 'color-mix(in srgb, var(--engine-text-muted) 10%, transparent)',
-                border: '1px solid var(--engine-border)',
-                borderRadius: '16px',
-                padding: '1.5rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--engine-accent)' }}>
-                  <Activity size={18} />
-                  <h3 style={{ margin: 0, color: 'var(--engine-text-main)', fontSize: '1.1rem', fontWeight: 600 }}>Required Skills</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+                  
+                  {/* Required Skills */}
+                  <div style={{
+                    backgroundColor: 'color-mix(in srgb, var(--engine-text-muted) 10%, transparent)',
+                    border: '1px solid var(--engine-border)',
+                    borderRadius: '16px',
+                    padding: '1.5rem'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--engine-accent)' }}>
+                      <Activity size={18} />
+                      <h3 style={{ margin: 0, color: 'var(--engine-text-main)', fontSize: '1.1rem', fontWeight: 600 }}>Required Skills</h3>
+                    </div>
+                    <ul style={{ margin: 0, padding: '0 0 0 1.25rem', color: 'var(--engine-text-muted)', display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.95rem' }}>
+                      {activePath.skills && activePath.skills.map((skill, idx) => (
+                        <li key={idx} style={{ paddingLeft: '0.5rem' }}>{skill}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Learning Resources */}
+                  <div style={{
+                    backgroundColor: 'color-mix(in srgb, var(--engine-text-muted) 10%, transparent)',
+                    border: '1px solid var(--engine-border)',
+                    borderRadius: '16px',
+                    padding: '1.5rem'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--engine-accent)' }}>
+                      <Link2 size={18} />
+                      <h3 style={{ margin: 0, color: 'var(--engine-text-main)', fontSize: '1.1rem', fontWeight: 600 }}>Learning Resources</h3>
+                    </div>
+                    <ul style={{ margin: 0, padding: '0 0 0 1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.95rem' }}>
+                      {activePath.resources && activePath.resources.map((res, idx) => (
+                        <li key={idx} style={{ paddingLeft: '0.5rem', color: 'var(--engine-text-muted)' }}>
+                          <a href={res.url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--engine-accent)', textDecoration: 'none' }}>{res.name}</a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
                 </div>
-                <ul style={{ margin: 0, padding: '0 0 0 1.25rem', color: 'var(--engine-text-muted)', display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.95rem' }}>
-                  {activePath.skills.map((skill, idx) => (
-                    <li key={idx} style={{ paddingLeft: '0.5rem' }}>{skill}</li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Learning Resources */}
-              <div style={{
-                backgroundColor: 'color-mix(in srgb, var(--engine-text-muted) 10%, transparent)',
-                border: '1px solid var(--engine-border)',
-                borderRadius: '16px',
-                padding: '1.5rem'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--engine-accent)' }}>
-                  <Link2 size={18} />
-                  <h3 style={{ margin: 0, color: 'var(--engine-text-main)', fontSize: '1.1rem', fontWeight: 600 }}>Learning Resources</h3>
-                </div>
-                <ul style={{ margin: 0, padding: '0 0 0 1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.95rem' }}>
-                  {activePath.resources.map((res, idx) => (
-                    <li key={idx} style={{ paddingLeft: '0.5rem', color: 'var(--engine-text-muted)' }}>
-                      <a href={res.url} style={{ color: 'var(--engine-accent)', textDecoration: 'none' }}>{res.name}</a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-            </div>
-          </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </motion.div>
